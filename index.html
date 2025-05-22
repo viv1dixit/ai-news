@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News Hub</title>
+    <style>
+        /* index.css content starts here */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffffff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        .companies-filter {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .company-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .company-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .company-btn.active {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border-color: transparent;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5rem;
+            margin: 50px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        .news-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .news-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .news-card.expanded {
+            grid-column: 1 / -1;
+            transform: scale(1.02);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .news-header {
+            padding: 25px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .company-tag {
+            display: inline-block;
+            padding: 6px 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .news-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.4;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .news-date {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .news-content {
+            padding: 25px;
+        }
+
+        .news-summary {
+            color: #555;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .news-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+
+        .news-details.expanded {
+            max-height: 1000px;
+            opacity: 1;
+            margin-top: 20px;
+        }
+
+        .news-details p {
+            margin-bottom: 15px;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        .read-more {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .read-more:hover {
+            border-bottom-color: #667eea;
+        }
+
+        .error-message {
+            text-align: center;
+            color: white;
+            background: rgba(231, 76, 60, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            margin: 20px 0;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .companies-filter {
+                justify-content: center;
+            }
+
+            .company-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* index.css content ends here */
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI News Hub</h1>
+            <p>Latest AI developments from leading tech companies</p>
+        </div>
+
+        <div class="companies-filter">
+            <button class="company-btn active" data-company="all">All</button>
+            <button class="company-btn" data-company="openai">OpenAI</button>
+            <button class="company-btn" data-company="google">Google</button>
+            <button class="company-btn" data-company="microsoft">Microsoft</button>
+            <button class="company-btn" data-company="anthropic">Anthropic</button>
+            <button class="company-btn" data-company="mistral">Mistral</button>
+            <button class="company-btn" data-company="meta">Meta</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading latest AI news...</p>
+        </div>
+
+        <div id="error-container"></div>
+        <div id="news-container" class="news-grid"></div>
+    </div>
+
+    <script>
+        /* index.js content starts here */
+        class AINewsHub {
+            constructor() {
+                this.newsData = [];
+                this.filteredNews = [];
+                this.currentFilter = 'all';
+                this.expandedCard = null;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadNews();
+            }
+
+            setupEventListeners() {
+                const filterButtons = document.querySelectorAll('.company-btn');
+                filterButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.handleFilterClick(e.target);
+                    });
+                });
+            }
+
+            handleFilterClick(button) {
+                // Remove active class from all buttons
+                document.querySelectorAll('.company-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                // Filter news
+                this.currentFilter = button.dataset.company;
+                this.filterNews();
+            }
+
+            async loadNews() {
+                this.showLoading(true);
+
+                try {
+                    // Simulate API call with mock data since we can't make real API calls
+                    await this.delay(1500); // Simulate loading time
+                    this.newsData = this.getMockNewsData();
+                    this.filteredNews = [...this.newsData];
+                    this.renderNews();
+                } catch (error) {
+                    this.showError('Failed to load news. Please try again later.');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            getMockNewsData() {
+                return [
+                    {
+                        "id": 1,
+                        "company": "Google",
+                        "title": "Google DeepMind Unveils Gemini 2.0 with Revolutionary Planning Abilities",
+                        "summary": "Google DeepMind introduces Gemini 2.0, featuring advanced planning capabilities and improved integration with Google services.",
+                        "details": "Gemini 2.0 introduces breakthrough planning algorithms that can handle complex multi-step tasks. The model shows remarkable improvement in logical reasoning and can now plan and execute complex workflows autonomously. Integration with Google Workspace allows for seamless productivity enhancements.",
+                        "date": "2024-05-19",
+                        "link": "#"
+                    },
+                    {
+                        "id": 2,
+                        "company": "Google",
+                        "title": "Google Launches Gemini 2.5 with Enhanced Reasoning Capabilities",
+                        "summary": "Google's Gemini 2.5 showcases exceptional reasoning capabilities, elevating AI interactions to new heights.",
+                        "details": "Described as a 'thinking model,' Gemini 2.5 stems from an enhanced base model and refined post-training processes, enabling the AI to outperform competitors in various benchmarks.",
+                        "date": "2025-03-15",
+                        "link": "https://opentools.ai/news/ai-spring-2025-major-updates-across-google-openai-microsoft-and-more"
+                    },
+                    {
+                        "id": 3,
+                        "company": "Microsoft",
+                        "title": "Microsoft Builds AI 'Agent Factory' Under New CoreAI Unit",
+                        "summary": "Microsoft forms CoreAI unit led by ex-Facebook exec Jay Parikh to develop advanced AI agents.",
+                        "details": "The CoreAI unit consolidates teams from various Microsoft divisions, overseeing nearly 10,000 employees. Parikh envisions an 'AI agent factory,' drawing inspiration from Microsoft's early concept of a software factory, aiming to reorient Microsoft’s AI strategy toward long-term, scalable, and integrated solutions.",
+                        "date": "2025-05-22",
+                        "link": "https://www.businessinsider.com/memos-how-satya-nadellas-ai-czar-plans-to-change-microsoft-2025-5"
+                    },
+                    {
+                        "id": 4,
+                        "company": "Microsoft",
+                        "title": "Microsoft Highlights 'Explosion' of AI Agents at Build 2025",
+                        "summary": "Microsoft's Build 2025 conference focuses on the rapid growth and advancements in agentic AI.",
+                        "details": "Microsoft CTO Kevin Scott revealed that the usage of AI agents has more than doubled since last year. CEO Satya Nadella emphasized Microsoft’s vision of building an open 'agentic web' and introduced various updates, including an Azure SRE agent integrated into GitHub Copilot.",
+                        "date": "2025-05-20",
+                        "link": "https://www.businessinsider.com/microsoft-build-keynote-2025-ai-agent-use-doubled-2025-5"
+                    },
+                    {
+                        "id": 5,
+                        "company": "OpenAI",
+                        "title": "OpenAI to Acquire Jony Ive's AI Startup in $6.5 Billion Deal",
+                        "summary": "OpenAI announces plans to acquire io, an AI startup founded by former Apple design chief Jony Ive.",
+                        "details": "The acquisition aims to support ambitions to build a new generation of AI-powered computing products. Upon completion, Jony Ive and LoveFrom will take on significant design and creative roles across both OpenAI and io.",
+                        "date": "2025-05-21",
+                        "link": "https://www.investopedia.com/openai-to-acquire-iphone-designer-jony-ive-ai-startup-in-usd6-5-billion-deal-11739398"
+                    },
+                    {
+                        "id": 6,
+                        "company": "OpenAI",
+                        "title": "OpenAI Introduces 'Operator' AI Agent for Web Automation",
+                        "summary": "OpenAI launches 'Operator,' an AI agent capable of autonomously performing tasks through web browser interactions.",
+                        "details": "Operator can fill forms, place online orders, schedule appointments, and handle other repetitive browser-based tasks, expanding practical automation capabilities for users in daily activities.",
+                        "date": "2025-01-23",
+                        "link": "https://en.wikipedia.org/wiki/OpenAI_Operator"
+                    },
+                    {
+                        "id": 7,
+                        "company": "Apple",
+                        "title": "Apple's iOS 19 to Feature AI-Powered Enhancements",
+                        "summary": "Apple's upcoming iOS 19 introduces major enhancements, including AI-driven battery optimization and smarter Siri.",
+                        "details": "Key features include AI-driven battery optimization, context-aware Siri with enhanced voice commands, and expanded accessibility tools. The update also brings a significant interface revamp inspired by VisionOS.",
+                        "date": "2025-05-22",
+                        "link": "https://indiatimes.com/technology/news/ios-19-rumours-from-ai-powered-features-to-battery-optimisation-know-the-top-upgrades-coming-to-your-smartphone-659451.html"
+                    },
+                    {
+                        "id": 8,
+                        "company": "Apple",
+                        "title": "Apple Intelligence Features Now Available in India",
+                        "summary": "Apple extends its privacy leadership with new AI features across its platforms, now available in India.",
+                        "details": "Designed to protect users’ privacy at every step, Apple Intelligence features on-device processing, with larger models handled by Private Cloud Compute, ensuring data is never retained or exposed.",
+                        "date": "2025-03-01",
+                        "link": "https://www.apple.com/in/newsroom/2025/03/apple-intelligence-features-are-now-available-in-india/"
+                    },
+                    {
+                        "id": 9,
+                        "company": "NVIDIA",
+                        "title": "NVIDIA Unveils Cosmos World Foundation Models at GTC25",
+                        "summary": "NVIDIA introduces Cosmos world foundation models, tackling key challenges in physical AI development for robotics and autonomous systems.",
+                        "details": "These models offer developers tools to create physics-aware simulations, potentially streamlining advancements in AI-driven automation. Cosmos integrates generative models, tokenizers, and a video processing pipeline to power physical AI systems.",
+                        "date": "2025-03-19",
+                        "link": "https://www.toolkitly.com/latest-updates/nvidia/50"
+                    },
+                    {
+                        "id": 10,
+                        "company": "NVIDIA",
+                        "title": "NVIDIA Introduces Isaac GR00T N1 Model for Humanoid Robotics",
+                        "summary": "NVIDIA's Isaac GR00T N1 model pioneers an open and customizable foundation for humanoid robots.",
+                        "details": "The model enables advanced generalized skills and reasoning capabilities, with early adopters like 1X Technologies and Boston Dynamics leveraging this breakthrough to shape humanoid robot development trends.",
+                        "date": "2025-03-19",
+                        "link": "https://www.toolkitly.com/latest-updates/nvidia/50"
+                    },
+                    {
+                        "id": 11,
+                        "company": "Google",
+                        "title": "Google Introduces SynthID Detector to Identify AI-Generated Content",
+                        "summary": "At Google I/O 2025, Google announced SynthID Detector, a tool to identify AI-generated content created with Google AI tools.",
+                        "details": "SynthID Detector aims to enhance transparency in generative media by offering comprehensive detection capabilities across various content modalities, pinpointing specific segments likely watermarked with SynthID.",
+                        "date": "2025-05-22",
+                        "link": "https://timesofindia.indiatimes.com/technology/tech-news/google-introduces-synthid-detector-to-identify-ai-generated-content-at-google-i/o-2025/articleshow/121337620.cms"
+                    },
+                    {
+                        "id": 12,
+                        "company": "Alphabet",
+                        "title": "Alphabet Hits Near Three-Month High on New AI Updates",
+                        "summary": "Alphabet Inc. shares surged 4% following the introduction of 'AI Mode' to all U.S. Google Search users and a $249.99-per-month subscription targeting AI power users.",
+                        "details": "CEO Sundar Pichai emphasized that generative AI's growth complements traditional search behavior. Analysts expressed confidence in Google's ability to sustain search growth while enhancing monetization strategies.",
+                        "date": "2025-05-22",
+                        "link": "https://www.reuters.com/business/alphabet-hits-near-three-month-high-new-ai-updates-2025-05-22/"
+                    },
+                    {
+                        "id": 13,
+                        "company": "OpenAI",
+                        "title": "OpenAI Commits to Giant U.A.E. Data Center in Global Expansion",
+                        "summary": "OpenAI partners with UAE's G42 to construct a massive 1-gigawatt AI data center in Abu Dhabi, marking its first major international expansion.",
+                        "details": "Named Stargate UAE, the facility will be operated by OpenAI and Oracle, with funding from G42 and contributions from partners like SoftBank, Nvidia, and Cisco. An upgraded version of ChatGPT will be freely available across the UAE.",
+                        "date": "2025-05-22",
+                        "link": "https://www.wsj.com/tech/open-ai-abu-dhabi-data-center-1c3e384d"
+                    },
+                    {
+                        "id": 14,
+                        "company": "Microsoft",
+                        "title": "Microsoft Appoints Ex-Facebook Exec to Lead New AI Unit",
+                        "summary": "In early 2025, Microsoft appointed ex-Facebook executive Jay Parikh to lead its newly formed CoreAI unit, key to the company’s push toward building advanced digital AI agents.",
+                        "details": "CoreAI consolidates teams from various Microsoft divisions and oversees nearly 10,000 employees. Parikh introduced structured operational reviews and mandates post-incident evaluations to reorient Microsoft’s AI strategy toward long-term, scalable solutions.",
+                        "date": "2025-05-22",
+                        "link": "https://www.businessinsider.com/memos-how-satya-nadellas-ai-czar-plans-to-change-microsoft-2025-5"
+                    }, 
+                    {
+                        id: 15,
+                        company: 'OpenAI',
+                        title: 'OpenAI Announces GPT-4 Turbo with Enhanced Multimodal Capabilities',
+                        summary: 'OpenAI has released GPT-4 Turbo, featuring improved reasoning, faster response times, and enhanced image understanding capabilities.',
+                        details: 'The new model demonstrates significant improvements in mathematical reasoning, code generation, and visual analysis. It can now process images with higher accuracy and provide more detailed descriptions. The model also features reduced hallucination rates and better instruction following.',
+                        date: '2024-05-20',
+                        link: '#'
+                    },
+                    {
+                        id: 16,
+                        company: 'Google',
+                        title: 'Google DeepMind Unveils Gemini 2.0 with Revolutionary Planning Abilities',
+                        summary: 'Google DeepMind introduces Gemini 2.0, featuring advanced planning capabilities and improved integration with Google services.',
+                        details: 'Gemini 2.0 introduces breakthrough planning algorithms that can handle complex multi-step tasks. The model shows remarkable improvement in logical reasoning and can now plan and execute complex workflows autonomously. Integration with Google Workspace allows for seamless productivity enhancements.',
+                        date: '2024-05-19',
+                        link: '#'
+                    },
+                    {
+                        id: 17,
+                        company: 'Microsoft',
+                        title: 'Microsoft Copilot Gets Major AI Upgrade with Phi-3 Integration',
+                        summary: 'Microsoft enhances Copilot across all platforms with the integration of their latest Phi-3 model, bringing more efficient AI assistance.',
+                        details: 'The Phi-3 integration brings significant performance improvements to Microsoft Copilot. Users can now experience faster response times, better context understanding, and more accurate code completions. The update also includes enhanced privacy features and better offline capabilities.',
+                        date: '2024-05-18',
+                        link: '#'
+                    },
+                    {
+                        id: 18,
+                        company: 'Anthropic',
+                        title: 'Claude 3.5 Sonnet Achieves New Benchmarks in AI Safety and Reasoning',
+                        summary: 'Anthropic releases Claude 3.5 Sonnet with unprecedented safety measures and advanced reasoning capabilities for complex problem-solving.',
+                        details: 'Claude 3.5 Sonnet represents a major leap in AI safety research. The model features improved constitutional AI training, better refusal mechanisms for harmful content, and enhanced reasoning for complex analytical tasks. It shows particular strength in scientific reasoning and ethical decision-making.',
+                        date: '2024-05-17',
+                        link: '#'
+                    },
+                    {
+                        id: 19,
+                        company: 'Mistral',
+                        title: 'Mistral AI Launches Codestral 2.0 for Advanced Code Generation',
+                        summary: 'Mistral AI introduces Codestral 2.0, a specialized model for code generation with support for 40+ programming languages.',
+                        details: 'Codestral 2.0 features advanced code understanding and generation capabilities across multiple programming languages. The model excels at debugging, code optimization, and generating secure code. It includes special training for modern frameworks and has built-in security scanning capabilities.',
+                        date: '2024-05-16',
+                        link: '#'
+                    },
+                    {
+                        id: 20,
+                        company: 'Meta',
+                        title: 'Meta Releases Llama 3.1 with Breakthrough Efficiency and Performance',
+                        summary: 'Meta unveils Llama 3.1, featuring improved efficiency, multilingual capabilities, and better fine-tuning options for developers.',
+                        details: 'Llama 3.1 introduces significant architectural improvements that reduce computational requirements while maintaining high performance. The model features enhanced multilingual support for over 100 languages, improved fine-tuning capabilities, and better integration with Meta\'s AI infrastructure.',
+                        date: '2024-05-15',
+                        link: '#'
+                    }
+                ];
+            }
+
+            filterNews() {
+                if (this.currentFilter === 'all') {
+                    this.filteredNews = [...this.newsData];
+                } else {
+                    this.filteredNews = this.newsData.filter(news =>
+                        news.company.toLowerCase() === this.currentFilter.toLowerCase()
+                    );
+                }
+                this.renderNews();
+            }
+
+            renderNews() {
+                const container = document.getElementById('news-container');
+
+                if (this.filteredNews.length === 0) {
+                    container.innerHTML = '<div class="error-message">No news found for the selected filter.</div>';
+                    return;
+                }
+
+                container.innerHTML = this.filteredNews.map(news => `
+                    <div class="news-card" data-id="${news.id}" onclick="newsHub.toggleExpand(${news.id})">
+                        <div class="news-header">
+                            <div class="company-tag">${news.company}</div>
+                            <h2 class="news-title">${news.title}</h2>
+                            <div class="news-date">${this.formatDate(news.date)}</div>
+                        </div>
+                        <div class="news-content">
+                            <p class="news-summary">${news.summary}</p>
+                            <div class="news-details" id="details-${news.id}">
+                                <p>${news.details}</p>
+                                <a href="${news.link}" class="read-more">Read full article →</a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            toggleExpand(newsId) {
+                const card = document.querySelector(`[data-id="${newsId}"]`);
+                const details = document.getElementById(`details-${newsId}`);
+
+                // If this card is already expanded, collapse it
+                if (this.expandedCard === newsId) {
+                    card.classList.remove('expanded');
+                    details.classList.remove('expanded');
+                    this.expandedCard = null;
+                    return;
+                }
+
+                // Collapse previously expanded card
+                if (this.expandedCard) {
+                    const prevCard = document.querySelector(`[data-id="${this.expandedCard}"]`);
+                    const prevDetails = document.getElementById(`details-${this.expandedCard}`);
+                    prevCard.classList.remove('expanded');
+                    prevDetails.classList.remove('expanded');
+                }
+
+                // Expand current card
+                card.classList.add('expanded');
+                details.classList.add('expanded');
+                this.expandedCard = newsId;
+
+                // Smooth scroll to expanded card
+                setTimeout(() => {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+
+            formatDate(dateString) {
+                const options = {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
+                return new Date(dateString).toLocaleDateString('en-US', options);
+            }
+
+            showLoading(show) {
+                const loadingEl = document.getElementById('loading');
+                const newsContainer = document.getElementById('news-container');
+
+                if (show) {
+                    loadingEl.style.display = 'block';
+                    newsContainer.style.display = 'none';
+                } else {
+                    loadingEl.style.display = 'none';
+                    newsContainer.style.display = 'grid';
+                }
+            }
+
+            showError(message) {
+                const errorContainer = document.getElementById('error-container');
+                errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize the news hub when DOM is loaded
+        let newsHub;
+        document.addEventListener('DOMContentLoaded', () => {
+            newsHub = new AINewsHub();
+        });
+        /* index.js content ends here */
+    </script>
+</body>
+
+</html>
